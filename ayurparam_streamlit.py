@@ -88,11 +88,6 @@ st.markdown(f"""
         color: {colors['text_primary']} !important;
     }}
 
-    /* Hiding sidebar collapse button to keep it always open */
-    [data-testid="collapsedControl"] {{
-        display: none !important;
-    }}
-
     .stApp::before {{
         content: '';
         position: fixed;
@@ -303,9 +298,7 @@ st.markdown(f"""
         box-shadow: 0 0 12px {colors['response_bg']} !important;
     }}
     
-    #MainMenu {{visibility: hidden;}}
-    footer {{visibility: hidden;}}
-    header {{visibility: hidden;}}
+
     
     ::-webkit-scrollbar {{
         width: 12px;
