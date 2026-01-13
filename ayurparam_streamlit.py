@@ -88,11 +88,6 @@ st.markdown(f"""
         color: {colors['text_primary']} !important;
     }}
 
-    /* Hiding sidebar collapse button to keep it always open */
-    [data-testid="collapsedControl"] {{
-        display: none !important;
-    }}
-
     .stApp::before {{
         content: '';
         position: fixed;
