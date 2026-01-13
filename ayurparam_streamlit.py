@@ -1,10 +1,12 @@
 import streamlit as st
 import requests
 import json
+import markdown
+
 
 # Page configuration
 st.set_page_config(
-    page_title="AyurParam - Ayurvedic AI",
+    page_title="Bettrlabs - Ayurvedic AI",
     page_icon="🌿",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -36,19 +38,22 @@ def get_theme_colors(theme):
     else:  # light theme
         return {
             'gradient_start': '#ffffff',
-            'gradient_mid': '#f8f9fa',
-            'gradient_end': '#f0f0f0',
-            'primary': '#c49f47',  # Dark gold
-            'accent': '#8b7355',   # Bronze
-            'secondary': '#0891b2', # Teal accent
-            'bg_overlay': 'rgba(255, 255, 255, 0.95)',
-            'glass_bg': 'rgba(0, 0, 0, 0.03)',
-            'glass_border': 'rgba(0, 0, 0, 0.15)',
-            'text_primary': '#0a0a0a',
-            'text_secondary': '#4b5563',
-            'card_bg': 'rgba(0, 0, 0, 0.02)',
-            'response_bg': 'rgba(196, 159, 71, 0.08)',
-            'response_border': '#c49f47',
+            'gradient_mid': '#f0f0f0',
+            'gradient_end': '#e5e5e5',
+            'primary': '#000000',  # Black for high contrast default text
+            'accent': '#d4af37',   # Gold accent
+            'secondary': '#0ea5e9', 
+            'bg_overlay': 'rgba(255, 255, 255, 0.98)',
+            'glass_bg': 'rgba(255, 255, 255, 0.98)',
+            'glass_border': 'rgba(0, 0, 0, 0.1)',
+            'text_primary': '#000000', # Pure black for maximum readability
+            'text_secondary': '#374151', # Dark gray
+            'card_bg': '#ffffff', # Pure white background for inputs
+            'response_bg': 'rgba(240, 240, 240, 0.8)',
+            'response_border': '#d4af37',
+            'input_bg': '#ffffff', # Distinct input background
+            'input_text': '#000000', # Dark text for inputs
+            'sidebar_text': '#000000' # Sidebar text
         }
 
 # Get current theme colors
@@ -63,8 +68,31 @@ st.markdown(f"""
         background: linear-gradient(135deg, {colors['gradient_start']} 0%, {colors['gradient_mid']} 50%, {colors['gradient_end']} 100%);
         background-attachment: fixed;
         font-family: 'Inter', sans-serif;
+        color: {colors['text_primary']} !important;
     }}
     
+    /* General text visibility ensuring all labels and inputs are readable */
+    p, label, h1, h2, h3, h4, h5, h6, li, span {{
+        color: {colors['text_primary']} !important;
+    }}
+    
+    /* Sidebar specific styling */
+    section[data-testid="stSidebar"] {{
+        background: {colors['gradient_start']};
+        border-right: 1px solid {colors['glass_border']};
+    }}
+    
+    section[data-testid="stSidebar"] p, 
+    section[data-testid="stSidebar"] span, 
+    section[data-testid="stSidebar"] label {{
+        color: {colors['text_primary']} !important;
+    }}
+
+    /* Hiding sidebar collapse button to keep it always open */
+    [data-testid="collapsedControl"] {{
+        display: none !important;
+    }}
+
     .stApp::before {{
         content: '';
         position: fixed;
@@ -115,13 +143,13 @@ st.markdown(f"""
         border-radius: 16px;
         padding: 2.5rem;
         margin: 1.5rem 0;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
     }}
     
     .glass-card:hover {{
         transform: translateY(-3px);
-        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
         border-color: {colors['primary']};
     }}
     
@@ -187,7 +215,7 @@ st.markdown(f"""
     
     .stButton > button {{
         background: linear-gradient(135deg, {colors['primary']} 0%, {colors['accent']} 100%) !important;
-        color: #000000 !important;
+        color: {('#000000' if st.session_state.theme == 'dark' else '#ffffff')} !important;
         font-weight: 700 !important;
         padding: 0.9rem 3rem !important;
         border: none !important;
@@ -202,11 +230,6 @@ st.markdown(f"""
     .stButton > button:hover {{
         transform: translateY(-4px) scale(1.02) !important;
         box-shadow: 0 10px 35px {colors['response_bg']} !important;
-    }}
-    
-    section[data-testid="stSidebar"] {{
-        background: {colors['gradient_start']};
-        border-right: 1px solid {colors['glass_border']};
     }}
     
     section[data-testid="stSidebar"] h2 {{
@@ -228,32 +251,52 @@ st.markdown(f"""
         padding: 1.5rem;
         margin: 1.2rem 0;
         border: 1px solid {colors['glass_border']};
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     }}
     
+    /* INPUT FIELDS STYLING - Critical for visibility */
     .stTextInput input, .stTextArea textarea {{
-        background: {colors['card_bg']} !important;
+        background-color: {colors['card_bg']} !important;
         border: 1px solid {colors['glass_border']} !important;
         border-radius: 8px !important;
-        color: {colors['text_primary']} !important;
+        color: {colors['text_primary']} !important; 
         font-size: 0.95rem !important;
         font-weight: 500 !important;
         padding: 0.8rem !important;
+        caret-color: {colors['primary']} !important;
     }}
     
     .stTextInput input::placeholder, .stTextArea textarea::placeholder {{
         color: {colors['text_secondary']} !important;
-        opacity: 0.6 !important;
+        opacity: 0.7 !important;
     }}
     
     .stTextInput input:focus, .stTextArea textarea:focus {{
         border-color: {colors['primary']} !important;
         box-shadow: 0 0 0 2px {colors['response_bg']} !important;
+        background-color: {colors['card_bg']} !important;
+        color: {colors['text_primary']} !important;
     }}
     
-    .stSlider > div > div > div {{
-        background: linear-gradient(90deg, {colors['text_secondary']}, {colors['primary']}) !important;
+    /* Ensure validation text is visible */
+    .stAlert {{
+        color: {colors['text_primary']} !important;
     }}
+    
+    .stAlert p {{
+        color: {colors['text_primary']} !important;
+    }}
+
+    /* Ensure spinner text is visible */
+    .stSpinner > div > div {{
+        color: {colors['text_primary']} !important;
+    }}
+    
+    /* Ensure label text is visible */
+    label[data-testid="stWidgetLabel"] {{
+        color: {colors['text_primary']} !important;
+    }}
+
     
     .stSlider > div > div > div > div {{
         background: {colors['primary']} !important;
@@ -438,10 +481,15 @@ def query_ollama(prompt: str, ollama_url: str, model_name: str, max_tokens: int,
         return f"Error: {str(e)}"
 
 def main():
-    # Header
-    st.markdown("""
+    # Header without logo (logo only in sidebar)
+    st.markdown(f"""
         <div class="main-header">
-            <div class="main-title">🌿 AyurParam AI</div>
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <div style="font-size: 1.3rem; font-weight: 700; color: {colors['primary']}; letter-spacing: 4px; text-transform: uppercase; font-family: 'Playfair Display', serif;">
+                    Bettrlabs
+                </div>
+            </div>
+            <div class="main-title">Ayurveda AI</div>
             <div class="subtitle">Ancient Wisdom • Modern Intelligence</div>
         </div>
     """, unsafe_allow_html=True)
@@ -469,10 +517,27 @@ def main():
     
     # Sidebar Configuration
     with st.sidebar:
-        st.markdown("## ⚙️ Configuration")
+        # Logo and branding in sidebar - left aligned using columns for proper vertical alignment
+        logo_col, text_col = st.columns([1, 4])
+        with logo_col:
+            try:
+                st.image("logo.jpg", width=50)
+            except:
+                st.write("🌿")
+        
+        with text_col:
+            st.markdown(f"""
+                <div style="font-size: 1.1rem; font-weight: 700; color: {colors['primary']}; letter-spacing: 2px; font-family: 'Playfair Display', serif; padding-top: 10px;">
+                    Bettrlabs
+                </div>
+            """, unsafe_allow_html=True)
+        
+        # Configuration Heading
+        st.markdown(f'''<div class="sidebar-section">
+            <h3 style="color: {colors['primary']} !important; margin: 0; padding: 0;">⚙️ Configuration</h3>
+        </div>''', unsafe_allow_html=True)
         
         # Theme Toggle - Simple checkbox
-        st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
         theme_toggle = st.checkbox(
             "🌙 Dark Mode" if st.session_state.theme == 'light' else "☀️ Light Mode",
             value=(st.session_state.theme == 'dark'),
@@ -486,11 +551,11 @@ def main():
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
         
-        st.divider()
         
         # Ollama Settings
-        st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
-        st.markdown("### 🤖 Ollama Settings")
+        st.markdown(f'''<div class="sidebar-section">
+            <h3 style="color: {colors['primary']} !important; margin: 0; padding: 0;">🤖 Ollama Settings</h3>
+        </div>''', unsafe_allow_html=True)
         
         ollama_url = st.text_input(
             "Ollama API URL",
@@ -504,19 +569,17 @@ def main():
             value="Jayasimma/Ayurveda-8b",
             help="Specify the Ollama model name"
         )
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.divider()
         
         # Generation Parameters
-        st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
-        st.markdown("### 🎛️ Generation Parameters")
+        st.markdown(f'''<div class="sidebar-section">
+            <h3 style="color: {colors['primary']} !important; margin: 0; padding: 0;">🎛️ Generation Parameters</h3>
+        </div>''', unsafe_allow_html=True)
         
         max_new_tokens = st.slider(
             "Max Output Length",
             min_value=50,
             max_value=1000,
-            value=300,
+            value=700,
             help="Maximum tokens to generate"
         )
         
@@ -524,7 +587,7 @@ def main():
             "Temperature",
             min_value=0.0,
             max_value=1.0,
-            value=0.6,
+            value=0.7,
             step=0.1,
             help="Higher = more creative, Lower = more focused"
         )
@@ -545,29 +608,28 @@ def main():
             value=50,
             help="Number of top tokens to consider"
         )
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.divider()
         
         # Info
-        st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
-        st.markdown("### 💡 Quick Tips")
-        st.markdown(f"""
+        st.markdown(f'''<div class="sidebar-section">
+            <h3 style="color: {colors['primary']} !important; margin: 0; padding-bottom: 10px;">💡 Quick Tips</h3>
             <div style="color: {colors['text_primary']}; font-size: 0.9rem; line-height: 1.8; font-weight: 400;">
                 • Ask about herbs & remedies<br>
                 • Inquire about doshas & prakruti<br>
                 • Explore disease pathogenesis<br>
                 • Learn from ancient texts
             </div>
-        """, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Main Content
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        </div>''', unsafe_allow_html=True)
     
     # Validation
     if not ollama_url:
-        st.warning("⚠️ Please configure your Ollama API URL in the sidebar to get started")
+        st.markdown(f"""
+            <div style="background: {colors['response_bg']}; padding: 1.5rem; border-radius: 12px; border: 1px solid {colors['response_border']}; border-left: 4px solid #fbbf24; display: flex; align-items: center;">
+                <span style="font-size: 1.5rem; margin-right: 1rem;">⚠️</span>
+                <span style="font-weight: 500; font-size: 1rem; color: {colors['text_primary']};">
+                    Please configure your <strong>Ollama API URL</strong> in the sidebar to get started
+                </span>
+            </div>
+        """, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
         return
     
@@ -584,7 +646,6 @@ def main():
         help="Type your question about Ayurveda"
     )
     
-    st.markdown('</div>', unsafe_allow_html=True)
     
     # Generate Button
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -617,19 +678,21 @@ def main():
                     st.markdown(f"""
                         <div style="display: flex; align-items: center; margin-bottom: 1.5rem; padding: 1.5rem; background: {colors['response_bg']}; border-radius: 12px; border: 1px solid {colors['response_border']}; border-left: 4px solid {colors['primary']};">
                             <span style="font-size: 2rem; margin-right: 1rem;">🌿</span>
-                            <span style="font-weight: 700; color: {colors['primary']}; font-size: 1.2rem; font-family: 'Playfair Display', serif;">AyurParam's Wisdom</span>
+                            <span style="font-weight: 700; color: {colors['primary']}; font-size: 1.2rem; font-family: 'Playfair Display', serif;">Ayurveda's Wisdom</span>
                         </div>
                     """, unsafe_allow_html=True)
                     
+                    # Convert markdown response to HTML
+                    html_response = markdown.markdown(response)
+                    
+                    # Style the HTML content to match theme
                     st.markdown(f"""
                         <div class="response-area">
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown(response)
-                    
-                    st.markdown("""
+                            {html_response}
                         </div>
                     """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)  # Close glass-card here
     
     # Footer
     st.markdown("---")
